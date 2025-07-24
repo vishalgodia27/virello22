@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { selectBudgetOptions, SelectTravelList } from "../options/options.jsx";
 import { Button } from "../components/ui/button";
 import { useToast } from "../components/ui/toast";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../services/firebaseconfig"; 
 import { FcGoogle } from "react-icons/fc";
 import axios from "axios";
 import {
@@ -22,6 +24,7 @@ function Createtrip() {
   const [place, setPlace] = useState(null);
   const [days, setDays] = useState("");
   const [formData, setFormData] = useState({});
+
 
   const handleinputChange = (name, value) => {
     setFormData((prev) => ({
@@ -107,14 +110,15 @@ function Createtrip() {
 
     // ✅ Structured prompt
     const prompt = `
-Generate a travel plan for the location: ${formData.location.label} for ${people} people with a ${formData.budget.label} budget. 
-Include a list of  hotels with prices, addresses, restaurants, hotel image URLs, geo coordinates, ratings, and descriptions,with working hotel images url . 
-Also suggest an itinerary with place names, place details, ticket pricing, and travel time between locations for ${formData.days.value} days. 
-Plan each day with the best times to visit. 
-Return all data in clean JSON format suitable for use in a travel app. 
-This is a trip for a ${formData.travelType.label}.
-`;
-console.log(prompt);
+    Generate a travel plan for the location: ${formData.location.label} for ${people} people with a ${formData.budget.label} budget. 
+      Include a list of  hotels with prices, addresses, restaurants, hotel image URLs, geo coordinates, ratings, and descriptions,with working hotel images url . 
+    Also suggest an itinerary with place names, place details, ticket pricing, and travel time between locations for ${formData.days.value} days. 
+    Plan each day with the best times to visit. 
+    Return all data in clean JSON format suitable for use in a travel app. 
+    This is a trip for a ${formData.travelType.label}.
+    `;
+    console.log(prompt);
+
 
     try {
       const API_KEY = "AIzaSyDmr_mITQ2lLAgEhVf_vFdtUFC_io8gdjk";
@@ -133,10 +137,11 @@ console.log(prompt);
       const result = await response.json();
       const tripData = result?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (tripData) {
-        console.log("✅ Gemini Trip Plan:\n", tripData);
+        console.log(" Gemini Trip Plan:\n", tripData);
         // Optional: JSON.parse(tripData) if it's valid JSON
+        SaveAiTrip(tripData)
       } else {
-        console.error("❌ Gemini did not return valid content:\n", result);
+        console.error(" Gemini did not return valid content:\n", result);
       }
     } catch (error) {
       console.error("Error calling Gemini AI:", error);
@@ -147,7 +152,48 @@ console.log(prompt);
         duration: 4000,
       });
     }
+
   };
+
+
+
+//   const SaveAiTrip = async (tripDataJson, formData) => {
+//   try {
+//     const docId = Date.now().toString();
+//     await setDoc(doc(db, "Aitrips", docId), {
+//       userSelection: formData,
+//       tripData: tripDataJson,
+//       createdAt: new Date().toISOString(),
+//     });
+//     console.log("✅ Trip saved successfully!");
+//   } catch (error) {
+//     console.error("❌ Error saving trip to Firestore:", error);
+//   }
+// };
+
+
+const SaveAiTrip = async (tripDataJson, formData) => {
+  try {
+    const docId = Date.now().toString();
+
+    // ✅ Safe default if formData is null/undefined
+    const cleanFormData = Object.fromEntries(
+      Object.entries(formData || {}).filter(
+        ([_, value]) => value !== undefined && value !== null
+      )
+    );
+
+    await setDoc(doc(db, "Aitrips", docId), {
+      userSelection: cleanFormData,
+      tripData: tripDataJson,
+      createdAt: new Date().toISOString(),
+    });
+
+    console.log("✅ Trip saved successfully!");
+  } catch (error) {
+    console.error("❌ Error saving trip to Firestore:", error);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-10">

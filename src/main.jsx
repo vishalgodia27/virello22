@@ -26,7 +26,8 @@ const router = createBrowserRouter([
         <Createtrip />
       </ToastProvider>
     )
-  }
+  },
+  
 ])
 
 createRoot(document.getElementById('root')).render(
