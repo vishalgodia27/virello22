@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { useNavigate } from "react-router-dom";
 const GOMAPS_API_KEY = "AlzaSyDxAcoOm13Tf-2dSSc5MvpelbZ2Rp3GsfO";
 
 function Createtrip() {
@@ -24,8 +25,8 @@ function Createtrip() {
   const [place, setPlace] = useState(null);
   const [days, setDays] = useState("");
   const [formData, setFormData] = useState({});
-
-
+ const navigate = useNavigate();
+  
   const handleinputChange = (name, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -108,15 +109,24 @@ function Createtrip() {
     );
     const people = selectedTravelType?.people || 1;
 
-    // ✅ Structured prompt
+    // // ✅ Structured prompt
+    // const prompt = `
+    // Generate a travel plan for the location: ${formData.location.label} for ${people} people with a ${formData.budget.label} budget. 
+    //   Include a list of  hotels with prices, addresses, restaurants, hotel image URLs, geo coordinates, ratings, and descriptions,with working hotel images url . 
+    // Also suggest an itinerary with place names, place details, ticket pricing, and travel time between locations for ${formData.days.value} days. 
+    // Plan each day with the best times to visit. 
+    // Return all data in clean JSON format suitable for use in a travel app. 
+    // This is a trip for a ${formData.travelType.label}.
+    // `;
     const prompt = `
-    Generate a travel plan for the location: ${formData.location.label} for ${people} people with a ${formData.budget.label} budget. 
-      Include a list of  hotels with prices, addresses, restaurants, hotel image URLs, geo coordinates, ratings, and descriptions,with working hotel images url . 
-    Also suggest an itinerary with place names, place details, ticket pricing, and travel time between locations for ${formData.days.value} days. 
-    Plan each day with the best times to visit. 
-    Return all data in clean JSON format suitable for use in a travel app. 
-    This is a trip for a ${formData.travelType.label}.
-    `;
+Generate a travel plan for the location: ${formData.location.label} for ${people} people with a ${formData.budget.label} budget. 
+Include a list of hotels with real working image URLs (public and directly usable in <img> tags), hotel names, prices, addresses, coordinates, ratings, and descriptions. 
+Ensure image URLs are directly accessible (no placeholder, no broken links).  and each url is fully working and showing images
+Also, suggest a detailed itinerary with places to visit for ${formData.days.value} days, including timing and distance between places. 
+Output everything in clean, valid JSON format.
+This is a trip for a ${formData.travelType.label}.
+`;
+
     console.log(prompt);
 
 
@@ -139,7 +149,9 @@ function Createtrip() {
       if (tripData) {
         console.log(" Gemini Trip Plan:\n", tripData);
         // Optional: JSON.parse(tripData) if it's valid JSON
-        SaveAiTrip(tripData)
+        // SaveAiTrip(tripData)
+        SaveAiTrip(tripData, formData)
+
       } else {
         console.error(" Gemini did not return valid content:\n", result);
       }
@@ -157,26 +169,12 @@ function Createtrip() {
 
 
 
-//   const SaveAiTrip = async (tripDataJson, formData) => {
-//   try {
-//     const docId = Date.now().toString();
-//     await setDoc(doc(db, "Aitrips", docId), {
-//       userSelection: formData,
-//       tripData: tripDataJson,
-//       createdAt: new Date().toISOString(),
-//     });
-//     console.log("✅ Trip saved successfully!");
-//   } catch (error) {
-//     console.error("❌ Error saving trip to Firestore:", error);
-//   }
-// };
-
 
 const SaveAiTrip = async (tripDataJson, formData) => {
   try {
     const docId = Date.now().toString();
 
-    // ✅ Safe default if formData is null/undefined
+    // Safe default if formData is null/undefined
     const cleanFormData = Object.fromEntries(
       Object.entries(formData || {}).filter(
         ([_, value]) => value !== undefined && value !== null
@@ -189,9 +187,10 @@ const SaveAiTrip = async (tripDataJson, formData) => {
       createdAt: new Date().toISOString(),
     });
 
-    console.log("✅ Trip saved successfully!");
+    console.log(" Trip saved successfully!");
+   navigate('/view-trip/' + docId)
   } catch (error) {
-    console.error("❌ Error saving trip to Firestore:", error);
+    console.error(" Error saving trip to Firestore:", error);
   }
 };
 
