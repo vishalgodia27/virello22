@@ -5,7 +5,7 @@ import { useToast } from "../components/ui/toast";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../services/firebaseconfig"; 
 import { FcGoogle } from "react-icons/fc";
-import axios from "axios";
+// import axios from "axios";
 import {
   Dialog,
   DialogContent,
@@ -109,15 +109,7 @@ function Createtrip() {
     );
     const people = selectedTravelType?.people || 1;
 
-    // // ✅ Structured prompt
-    // const prompt = `
-    // Generate a travel plan for the location: ${formData.location.label} for ${people} people with a ${formData.budget.label} budget. 
-    //   Include a list of  hotels with prices, addresses, restaurants, hotel image URLs, geo coordinates, ratings, and descriptions,with working hotel images url . 
-    // Also suggest an itinerary with place names, place details, ticket pricing, and travel time between locations for ${formData.days.value} days. 
-    // Plan each day with the best times to visit. 
-    // Return all data in clean JSON format suitable for use in a travel app. 
-    // This is a trip for a ${formData.travelType.label}.
-    // `;
+   
     const prompt = `
 Generate a travel plan for the location: ${formData.location.label} for ${people} people with a ${formData.budget.label} budget. 
 Include a list of hotels with real working image URLs (public and directly usable in <img> tags), hotel names, prices, addresses, coordinates, ratings, and descriptions. 
