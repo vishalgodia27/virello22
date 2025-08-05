@@ -112,7 +112,7 @@ function Createtrip() {
    
     const prompt = `
 Generate a travel plan for the location: ${formData.location.label} for ${people} people with a ${formData.budget.label} budget. 
-Include a list of hotels with real working image URLs (public and directly usable in <img> tags), hotel names, prices, addresses, coordinates, ratings, and descriptions. 
+Include a list of hotels with real working image URLs, hotel names, prices, addresses, coordinates, ratings, and descriptions. 
 Ensure image URLs are directly accessible (no placeholder, no broken links).  and each url is fully working and showing images
 Also, suggest a detailed itinerary with places to visit for ${formData.days.value} days, including timing and distance between places. 
 Output everything in clean, valid JSON format.

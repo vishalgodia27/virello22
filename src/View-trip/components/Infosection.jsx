@@ -1,41 +1,18 @@
-// import React from 'react'
-
-// function infosection({ trip }) {
-//     return (
-//         <div>
-//             <img src="/src/assets/placeholder.jpg" className='h-[340px] w-full object-cover rounded-xl'></img>
-//             <div className='my-5 flex flex-col gap-2'>
-//                 <h2 className='font-bold text-2xl'>
-//                     {
-//                         trip?.userSelection?.location?.label
-//                     }
-//                 </h2>
-
-//             </div>
-//             <div className='flex gap-5'>
-//                 <h2 className="p-1 px-3 bg-gray-200 border border-gray-400 rounded-full text-gray-500 text-sm">
-//                 Number of days: {trip.userSelection?.days?.value}
-//             </h2>
-//             <h2 className="p-1 px-3 bg-gray-200 border border-gray-400 rounded-full text-gray-500 text-sm">
-//                 Type of budget: {trip.userSelection?.budget?.value}
-//             </h2>
-//             <h2 className="p-1 px-3 bg-gray-200 border border-gray-400 rounded-full text-gray-500 text-sm">
-//                 Type of trvel : {trip.userSelection?.travelType?.value}
-//             </h2>
-//             <h2 className="p-1 px-3 bg-gray-200 border border-gray-400 rounded-full text-gray-500 text-sm">
-//                 Number of days: {trip.userSelection?.days?.value}
-//             </h2>
-//             </div>
-//         </div>
-//     )
-
-
-// }
-
-// export default infosection
-import React from 'react';
+import { GetPlacesDetails } from '@/services/GloballApi';
+import React, { useEffect } from 'react';
 
 function InfoSection({ trip }) {
+  useEffect(()=>{
+   trip&& GetPlacePhotos();
+  },[trip])
+  const data={
+    textQuery:'trip?.userSelection?.location?.label'
+   }
+  const GetPlacePhotos=async()=> GetPlacesDetails(data).then(res=>{
+    console.log(res.data)
+
+  })
+  
   return (
     <div>
       {/* Header image */}

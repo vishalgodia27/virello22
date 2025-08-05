@@ -33,9 +33,36 @@ function Hotels({ trip }) {
   // Extract hotels from the parsed data - try multiple possible structures
   let hotels = [];
   if (parsedTripData) {
-    hotels = parsedTripData.hotels || parsedTripData.Hotels || parsedTripData.hotel || parsedTripData.accommodations || [];
+    let hotelsData = parsedTripData.hotels || 
+                     parsedTripData.Hotels || 
+                     parsedTripData.hotel || 
+                     parsedTripData.accommodations || 
+                     parsedTripData.accommodation || 
+                     null;
+    
+    // If hotels is a string, try to parse it
+    if (typeof hotelsData === 'string') {
+      try {
+        hotelsData = JSON.parse(hotelsData);
+      } catch (error) {
+        console.error('Error parsing hotels string:', error);
+        hotelsData = null;
+      }
+    }
+    
+    // Handle different hotel data structures
+    if (Array.isArray(hotelsData)) {
+      hotels = hotelsData;
+    } else if (hotelsData && hotelsData.options && Array.isArray(hotelsData.options)) {
+      hotels = hotelsData.options;
+    } else if (hotelsData && typeof hotelsData === 'object') {
+      // If it's an object but not the expected structure, try to extract hotels
+      hotels = hotelsData.hotels || hotelsData.hotel || hotelsData.accommodations || [];
+    }
+    
     console.log('Found hotels:', hotels);
     console.log('Hotels array length:', hotels.length);
+    console.log('Available keys in parsedTripData:', Object.keys(parsedTripData));
   }
 
   // Helper function to get price from various possible property names
