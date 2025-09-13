@@ -66,7 +66,7 @@ export const selectBudgetOptions=[
         icon:'💸'
 
     },
-
+   
 ]
 export const AI_PROMPT =
   "Genrate Travel Plan For Location:{locaion} for {people} people with {budget} budget, give me hotels prices with list of hotel address, prices, restaurants, hotel images url, geo coordinates, rating, description, activities, and other things to do. Suggest itinerary with placesName, place details, ticket pricing, travel time between locations for {days} days. Plan each day with best times to visit. Return all data in clean JSON format to be used in a travel app. This is a trip for {travelType}.";

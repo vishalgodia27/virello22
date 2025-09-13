@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { selectBudgetOptions, SelectTravelList } from "../options/options.jsx";
 import { Button } from "../components/ui/button";
 import { useToast } from "../components/ui/toast";
@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useNavigate } from "react-router-dom";
-const GOMAPS_API_KEY = "AlzaSyDxAcoOm13Tf-2dSSc5MvpelbZ2Rp3GsfO";
+const LOCATIONIQ_API_KEY = import.meta.env.VITE_LOCATIONIQ_API_KEY || "";
 
 function Createtrip() {
   const { toast } = useToast();
@@ -26,6 +26,8 @@ function Createtrip() {
   const [days, setDays] = useState("");
   const [formData, setFormData] = useState({});
  const navigate = useNavigate();
+  const debounceRef = useRef(null);
+  const abortRef = useRef(null);
   
   const handleinputChange = (name, value) => {
     setFormData((prev) => ({
@@ -50,37 +52,58 @@ function Createtrip() {
   const fetchSuggestions = async (value) => {
     setInput(value);
     setPlace(null);
-    if (value.length < 2) {
+    if (!LOCATIONIQ_API_KEY) {
+      console.warn("Missing LocationIQ API key. Set VITE_LOCATIONIQ_API_KEY in .env.local");
+      return;
+    }
+    if (value.trim().length < 3) {
       setSuggestions([]);
       return;
     }
-    setLoading(true);
-    const url = `https://maps.gomaps.pro/maps/api/place/autocomplete/json?input=${encodeURIComponent(
-      value
-    )}&types=(cities)&language=en&key=${GOMAPS_API_KEY}`;
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      setSuggestions(data.predictions || []);
-    } catch (err) {
-      console.error("Error fetching suggestions:", err);
-      setSuggestions([]);
-    }
-    setLoading(false);
+
+    // debounce to limit API calls
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      // cancel previous request if in-flight
+      if (abortRef.current) abortRef.current.abort();
+      abortRef.current = new AbortController();
+
+      setLoading(true);
+      const url = `https://api.locationiq.com/v1/autocomplete?key=${LOCATIONIQ_API_KEY}&q=${encodeURIComponent(
+        value
+      )}&limit=7&dedupe=1&normalizeaddress=1`;
+      try {
+        const res = await fetch(url, { signal: abortRef.current.signal });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        setSuggestions(Array.isArray(data) ? data : []);
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error("Error fetching suggestions:", err);
+          setSuggestions([]);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }, 350);
   };
 
   const handleSelect = (item) => {
-    setInput(item.description);
+    const label = item?.display_name || item?.address?.city || item?.address?.name || "";
+    const valueId = item?.place_id || item?.osm_id || label;
+    setInput(label);
     setSuggestions([]);
     setPlace(item);
     handleinputChange("location", {
-      label: item.description,
-      value: item.place_id,
+      label: label,
+      value: valueId,
     });
 
     toast({
       title: "Destination Selected",
-      description: `You selected ${item.description}`,
+      description: `You selected ${label}`,
       type: "success",
       duration: 2000,
     });
@@ -217,11 +240,11 @@ const SaveAiTrip = async (tripDataJson, formData) => {
             <ul className="bg-white border-2 border-gray-200 rounded-lg mt-2 max-h-60 overflow-y-auto shadow-lg">
               {suggestions.map((item) => (
                 <li
-                  key={item.place_id}
+                  key={(item.place_id || item.osm_id || item.display_name)}
                   className="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0"
                   onClick={() => handleSelect(item)}
                 >
-                  {item.description}
+                  {item.display_name}
                 </li>
               ))}
             </ul>
