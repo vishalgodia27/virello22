@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { db } from '@/services/firebaseconfig';
 import { doc, getDoc } from 'firebase/firestore';
-import Infosection from '../components/infosection';
+import Infosection from '../components/Infosection';
 import { Hotel } from 'lucide-react';
 import Hotels from '../components/Hotels';
 import PlacesTovisit from '../components/PlacesToVisit';
